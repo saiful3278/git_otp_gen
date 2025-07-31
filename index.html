@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TOTP Authenticator</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2563eb">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔐 TOTP Authenticator</h1>
+            <p>Secure two-factor authentication codes</p>
+        </header>
+
+        <main>
+            <!-- Add New Key Section -->
+            <section class="add-key-section">
+                <button id="addKeyBtn" class="btn btn-primary">
+                    <span>➕</span> Add New Key
+                </button>
+            </section>
+
+            <!-- Add Key Modal -->
+            <div id="addKeyModal" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2 id="modalTitle">Add New TOTP Key</h2>
+                        <button id="closeModal" class="close-btn">&times;</button>
+                    </div>
+                    <form id="keyForm">
+                        <div class="form-group">
+                            <label for="keyName">Service Name</label>
+                            <input type="text" id="keyName" placeholder="e.g., Google, GitHub, AWS" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="keyAccount">Account (optional)</label>
+                            <input type="text" id="keyAccount" placeholder="e.g., user@example.com">
+                        </div>
+                        <div class="form-group">
+                            <label for="keySecret">Secret Key</label>
+                            <input type="text" id="keySecret" placeholder="Base32 secret key" required>
+                            <small>Enter the secret key provided by the service (Base32 format)</small>
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" id="cancelBtn" class="btn btn-secondary">Cancel</button>
+                            <button type="submit" id="saveBtn" class="btn btn-primary">Save</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- TOTP Keys List -->
+            <section class="keys-section">
+                <div id="loadingState" class="loading-state">
+                    <div class="spinner"></div>
+                    <p>Loading your keys...</p>
+                </div>
+                <div id="emptyState" class="empty-state" style="display: none;">
+                    <div class="empty-icon">🔑</div>
+                    <h3>No TOTP keys yet</h3>
+                    <p>Add your first authenticator key to get started</p>
+                </div>
+                <div id="keysList" class="keys-list"></div>
+            </section>
+        </main>
+
+        <!-- Error Toast -->
+        <div id="errorToast" class="toast toast-error">
+            <span id="errorMessage"></span>
+            <button onclick="hideToast('errorToast')">&times;</button>
+        </div>
+
+        <!-- Success Toast -->
+        <div id="successToast" class="toast toast-success">
+            <span id="successMessage"></span>
+            <button onclick="hideToast('successToast')">&times;</button>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js';
+        import { getFirestore } from 'https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js';
+        import { getAnalytics } from 'https://www.gstatic.com/firebasejs/12.0.0/firebase-analytics.js';
+        
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAhesc3INNl7-4-Mfa2CYt3sf-UvDpvioQ",
+            authDomain: "git-otpweb.firebaseapp.com",
+            projectId: "git-otpweb",
+            storageBucket: "git-otpweb.firebasestorage.app",
+            messagingSenderId: "173438161503",
+            appId: "1:173438161503:web:778385429ab9a0147401ea",
+            measurementId: "G-84C3LKYZYC"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        const db = getFirestore(app);
+        
+        window.db = db;
+        window.firebaseApp = app;
+        window.analytics = analytics;
+    </script>
+    
+    <!-- OTPLib -->
+    <script src="https://unpkg.com/otplib@12.0.1/otplib-browser.js"></script>
+    
+    <!-- Main App Script -->
+    <script src="app.js"></script>
+</body>
+</html>
