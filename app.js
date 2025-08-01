@@ -275,11 +275,6 @@ class TOTPAuthenticator {
 
     generateTOTP(secret) {
         try {
-            if (!window.otplib) {
-                console.error('OTPLib not loaded');
-                return '------';
-            }
-            
             // Ensure secret is properly formatted Base32
             const cleanSecret = secret.replace(/\s+/g, '').toUpperCase();
             
@@ -289,8 +284,16 @@ class TOTPAuthenticator {
                 return '------';
             }
             
-            // Generate TOTP code using otplib
-            const code = window.otplib.authenticator.generate(cleanSecret);
+            // Create TOTP instance using OTPAuth
+            const totp = new window.OTPAuth.TOTP({
+                secret: cleanSecret,
+                algorithm: 'SHA1',
+                digits: 6,
+                period: 30
+            });
+            
+            // Generate TOTP code
+            const code = totp.generate();
             console.log('Generated TOTP code for secret:', cleanSecret.substring(0, 4) + '...', 'Code:', code);
             return code;
         } catch (error) {
@@ -405,17 +408,35 @@ window.hideToast = function(toastId) {
     document.getElementById(toastId).classList.remove('show');
 };
 
-// Initialize app when DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
-    // Wait a bit for all scripts to load
-    setTimeout(() => {
-        console.log('Initializing TOTP Authenticator');
-        console.log('OTPLib available:', !!window.otplib);
-        if (window.otplib) {
-            console.log('OTPLib authenticator:', !!window.otplib.authenticator);
+// Function to wait for OTPAuth to load
+function waitForOTPAuth() {
+    return new Promise((resolve) => {
+        if (window.OTPAuth && window.OTPAuth.TOTP) {
+            console.log('OTPAuth already loaded');
+            resolve();
+            return;
         }
-        window.app = new TOTPAuthenticator();
-    }, 100);
+        
+        const checkOTPAuth = () => {
+            if (window.OTPAuth && window.OTPAuth.TOTP) {
+                console.log('OTPAuth loaded successfully');
+                resolve();
+            } else {
+                console.log('Waiting for OTPAuth...');
+                setTimeout(checkOTPAuth, 50);
+            }
+        };
+        
+        checkOTPAuth();
+    });
+}
+
+// Initialize app when DOM is loaded and OTPAuth is available
+document.addEventListener('DOMContentLoaded', async () => {
+    console.log('DOM loaded, waiting for OTPAuth...');
+    await waitForOTPAuth();
+    console.log('Initializing TOTP Authenticator');
+    window.app = new TOTPAuthenticator();
 });
 
 // Service Worker registration for PWA
