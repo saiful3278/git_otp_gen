@@ -11,15 +11,6 @@ class TOTPAuthenticator {
 
     async init() {
         this.setupEventListeners();
-
-        // Ensure otplib works with Base32 encoded secrets
-        if (window.otplib && window.otplib.authenticator) {
-            window.otplib.authenticator.options = {
-                ...window.otplib.authenticator.options,
-                encoding: 'base32'
-            };
-        }
-
         await this.loadKeys();
         this.startGlobalTimer();
     }
@@ -125,9 +116,19 @@ class TOTPAuthenticator {
     }
 
     isValidBase32(str) {
-        // Base32 alphabet
+        // Base32 alphabet: A-Z (26 letters) + 2-7 (6 numbers) + optional padding =
         const base32Regex = /^[A-Z2-7]+=*$/;
-        return base32Regex.test(str) && str.length >= 16;
+        const isValidFormat = base32Regex.test(str);
+        const isValidLength = str.length >= 16;
+        
+        console.log('Base32 validation:', {
+            secret: str.substring(0, 8) + '...',
+            format: isValidFormat,
+            length: isValidLength,
+            actualLength: str.length
+        });
+        
+        return isValidFormat && isValidLength;
     }
 
     async addKey(keyData) {
@@ -275,17 +276,31 @@ class TOTPAuthenticator {
     generateTOTP(secret) {
         try {
             if (!window.otplib) {
-                throw new Error('OTPLib not loaded');
+                console.error('OTPLib not loaded');
+                return '------';
             }
             
-            return window.otplib.authenticator.generate(secret);
+            // Ensure secret is properly formatted Base32
+            const cleanSecret = secret.replace(/\s+/g, '').toUpperCase();
+            
+            // Validate Base32 format before generating
+            if (!this.isValidBase32(cleanSecret)) {
+                console.error('Invalid Base32 secret:', secret);
+                return '------';
+            }
+            
+            // Generate TOTP code using otplib
+            const code = window.otplib.authenticator.generate(cleanSecret);
+            console.log('Generated TOTP code for secret:', cleanSecret.substring(0, 4) + '...', 'Code:', code);
+            return code;
         } catch (error) {
-            console.error('Error generating TOTP:', error);
+            console.error('Error generating TOTP:', error, 'Secret:', secret);
             return '------';
         }
     }
 
     updateAllTOTPCodes() {
+        console.log('Updating TOTP codes for', this.keys.length, 'keys');
         this.keys.forEach(key => {
             const code = this.generateTOTP(key.secret);
             const codeElement = document.getElementById(`code-${key.id}`);
@@ -293,6 +308,9 @@ class TOTPAuthenticator {
                 // Format code with spaces for better readability
                 const formattedCode = code.replace(/(\d{3})/g, '$1 ').trim();
                 codeElement.textContent = formattedCode;
+                console.log('Updated code element for key:', key.name, 'Code:', formattedCode);
+            } else {
+                console.error('Code element not found for key:', key.id, key.name);
             }
         });
     }
@@ -389,7 +407,15 @@ window.hideToast = function(toastId) {
 
 // Initialize app when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    window.app = new TOTPAuthenticator();
+    // Wait a bit for all scripts to load
+    setTimeout(() => {
+        console.log('Initializing TOTP Authenticator');
+        console.log('OTPLib available:', !!window.otplib);
+        if (window.otplib) {
+            console.log('OTPLib authenticator:', !!window.otplib.authenticator);
+        }
+        window.app = new TOTPAuthenticator();
+    }, 100);
 });
 
 // Service Worker registration for PWA
