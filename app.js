@@ -232,10 +232,10 @@ class TOTPAuthenticator {
                 </div>
                 <div class="key-actions">
                     <button class="btn btn-icon" onclick="app.editKey('${key.id}')" title="Edit">
-                        ✏️
+                        Edit
                     </button>
                     <button class="btn btn-danger" onclick="app.deleteKey('${key.id}')" title="Delete">
-                        🗑️
+                        Delete
                     </button>
                 </div>
             </div>

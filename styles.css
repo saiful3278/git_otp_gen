@@ -6,11 +6,11 @@
 }
 
 body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background: #f5f5f5;
     min-height: 100vh;
-    color: #1f2937;
-    line-height: 1.6;
+    color: #1a1a1a;
+    line-height: 1.5;
 }
 
 .container {
@@ -22,22 +22,24 @@ body {
 
 /* Header */
 header {
-    text-align: center;
-    margin-bottom: 30px;
-    padding: 20px 0;
+    text-align: left;
+    margin-bottom: 32px;
+    padding: 24px 0;
+    border-bottom: 1px solid #d1d1d1;
 }
 
 header h1 {
-    font-size: 2rem;
-    font-weight: 600;
-    color: white;
-    margin-bottom: 8px;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #000000;
+    margin-bottom: 4px;
+    letter-spacing: -0.025em;
 }
 
 header p {
-    color: rgba(255, 255, 255, 0.8);
-    font-size: 0.95rem;
+    color: #666666;
+    font-size: 0.875rem;
+    font-weight: 400;
 }
 
 /* Add Key Section */
@@ -62,48 +64,53 @@ header p {
 }
 
 .btn-primary {
-    background: #2563eb;
+    background: #000000;
     color: white;
-    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+    border: 1px solid #000000;
 }
 
 .btn-primary:hover {
-    background: #1d4ed8;
-    transform: translateY(-1px);
-    box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4);
+    background: #333333;
+    border-color: #333333;
 }
 
 .btn-secondary {
-    background: #6b7280;
-    color: white;
+    background: #ffffff;
+    color: #333333;
+    border: 1px solid #cccccc;
 }
 
 .btn-secondary:hover {
-    background: #4b5563;
+    background: #f8f8f8;
+    border-color: #999999;
 }
 
 .btn-danger {
-    background: #dc2626;
+    background: #666666;
     color: white;
-    padding: 8px 12px;
-    font-size: 0.85rem;
+    padding: 6px 10px;
+    font-size: 0.8rem;
+    border: 1px solid #666666;
 }
 
 .btn-danger:hover {
-    background: #b91c1c;
+    background: #333333;
+    border-color: #333333;
 }
 
 .btn-icon {
-    background: #f3f4f6;
-    color: #6b7280;
-    padding: 8px;
-    border-radius: 8px;
-    font-size: 0.85rem;
+    background: #ffffff;
+    color: #666666;
+    padding: 6px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    border: 1px solid #cccccc;
 }
 
 .btn-icon:hover {
-    background: #e5e7eb;
-    color: #374151;
+    background: #f8f8f8;
+    color: #333333;
+    border-color: #999999;
 }
 
 #addKeyBtn {
@@ -135,11 +142,12 @@ header p {
 
 .modal-content {
     background: white;
-    border-radius: 16px;
+    border-radius: 8px;
     padding: 0;
     width: 100%;
-    max-width: 400px;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    max-width: 420px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    border: 1px solid #cccccc;
     animation: slideUp 0.3s ease;
 }
 
@@ -148,20 +156,20 @@ header p {
     justify-content: space-between;
     align-items: center;
     padding: 20px 24px;
-    border-bottom: 1px solid #e5e7eb;
+    border-bottom: 1px solid #d1d1d1;
 }
 
 .modal-header h2 {
     font-size: 1.25rem;
     font-weight: 600;
-    color: #1f2937;
+    color: #000000;
 }
 
 .close-btn {
     background: none;
     border: none;
     font-size: 1.5rem;
-    color: #6b7280;
+    color: #666666;
     cursor: pointer;
     padding: 4px;
     border-radius: 4px;
@@ -169,7 +177,7 @@ header p {
 }
 
 .close-btn:hover {
-    color: #374151;
+    color: #000000;
 }
 
 /* Form */
@@ -185,14 +193,14 @@ form {
     display: block;
     margin-bottom: 6px;
     font-weight: 500;
-    color: #374151;
+    color: #333333;
     font-size: 0.9rem;
 }
 
 .form-group input {
     width: 100%;
     padding: 12px 16px;
-    border: 2px solid #e5e7eb;
+    border: 2px solid #cccccc;
     border-radius: 8px;
     font-size: 0.95rem;
     transition: border-color 0.2s ease;
@@ -201,14 +209,14 @@ form {
 
 .form-group input:focus {
     outline: none;
-    border-color: #2563eb;
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    border-color: #000000;
+    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
 }
 
 .form-group small {
     display: block;
     margin-top: 4px;
-    color: #6b7280;
+    color: #666666;
     font-size: 0.8rem;
 }
 
@@ -225,11 +233,10 @@ form {
 
 /* Keys Section */
 .keys-section {
-    background: rgba(255, 255, 255, 0.95);
-    border-radius: 16px;
-    padding: 20px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-    backdrop-filter: blur(10px);
+    background: #ffffff;
+    border-radius: 8px;
+    padding: 24px;
+    border: 1px solid #cccccc;
 }
 
 /* Loading State */
@@ -239,42 +246,42 @@ form {
 }
 
 .spinner {
-    width: 40px;
-    height: 40px;
-    border: 3px solid #e5e7eb;
-    border-top: 3px solid #2563eb;
+    width: 32px;
+    height: 32px;
+    border: 2px solid #cccccc;
+    border-top: 2px solid #000000;
     border-radius: 50%;
     animation: spin 1s linear infinite;
     margin: 0 auto 16px;
 }
 
 .loading-state p {
-    color: #6b7280;
+    color: #666666;
     font-size: 0.9rem;
 }
 
 /* Empty State */
 .empty-state {
     text-align: center;
-    padding: 40px 20px;
+    padding: 48px 20px;
 }
 
 .empty-icon {
-    font-size: 3rem;
+    font-size: 2.5rem;
     margin-bottom: 16px;
-    opacity: 0.7;
+    opacity: 0.5;
 }
 
 .empty-state h3 {
-    font-size: 1.25rem;
+    font-size: 1.125rem;
     font-weight: 600;
-    color: #374151;
+    color: #333333;
     margin-bottom: 8px;
 }
 
 .empty-state p {
-    color: #6b7280;
-    font-size: 0.9rem;
+    color: #666666;
+    font-size: 0.875rem;
 }
 
 /* Keys List */
@@ -286,16 +293,15 @@ form {
 
 /* Key Card */
 .key-card {
-    background: white;
-    border-radius: 12px;
+    background: #ffffff;
+    border-radius: 6px;
     padding: 20px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border: 1px solid #cccccc;
+    transition: border-color 0.2s ease;
 }
 
 .key-card:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    border-color: #999999;
 }
 
 .key-header {
@@ -308,12 +314,12 @@ form {
 .key-info h3 {
     font-size: 1.1rem;
     font-weight: 600;
-    color: #1f2937;
+    color: #000000;
     margin-bottom: 4px;
 }
 
 .key-info p {
-    color: #6b7280;
+    color: #666666;
     font-size: 0.85rem;
 }
 
@@ -324,29 +330,30 @@ form {
 
 .totp-display {
     text-align: center;
-    padding: 16px;
-    background: #f8fafc;
-    border-radius: 8px;
-    margin-bottom: 12px;
+    padding: 20px;
+    background: #f8f8f8;
+    border-radius: 4px;
+    margin-bottom: 16px;
+    border: 1px solid #e0e0e0;
 }
 
 .totp-code {
-    font-size: 2rem;
+    font-size: 1.75rem;
     font-weight: 600;
-    font-family: 'Courier New', monospace;
-    color: #1f2937;
-    letter-spacing: 4px;
-    margin-bottom: 8px;
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+    color: #000000;
+    letter-spacing: 3px;
+    margin-bottom: 12px;
     cursor: pointer;
     transition: color 0.2s ease;
 }
 
 .totp-code:hover {
-    color: #2563eb;
+    color: #333333;
 }
 
 .totp-code.copied {
-    color: #059669;
+    color: #666666;
 }
 
 .totp-timer {
@@ -355,14 +362,14 @@ form {
     justify-content: center;
     gap: 8px;
     font-size: 0.85rem;
-    color: #6b7280;
+    color: #666666;
 }
 
 .timer-circle {
     width: 20px;
     height: 20px;
     border-radius: 50%;
-    border: 2px solid #e5e7eb;
+    border: 2px solid #cccccc;
     position: relative;
     overflow: hidden;
 }
@@ -373,17 +380,17 @@ form {
     left: 0;
     width: 100%;
     height: 100%;
-    background: #2563eb;
+    background: #000000;
     transform-origin: center;
     transition: transform 1s linear;
 }
 
 .timer-fill.warning {
-    background: #f59e0b;
+    background: #666666;
 }
 
 .timer-fill.danger {
-    background: #dc2626;
+    background: #333333;
 }
 
 /* Toast Notifications */

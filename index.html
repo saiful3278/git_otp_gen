@@ -12,15 +12,15 @@
 <body>
     <div class="container">
         <header>
-            <h1>🔐 TOTP Authenticator</h1>
-            <p>Secure two-factor authentication codes</p>
+            <h1>TOTP Authenticator</h1>
+            <p>Two-factor authentication codes</p>
         </header>
 
         <main>
             <!-- Add New Key Section -->
             <section class="add-key-section">
                 <button id="addKeyBtn" class="btn btn-primary">
-                    <span>➕</span> Add New Key
+                    Add New Key
                 </button>
             </section>
 
@@ -60,9 +60,9 @@
                     <p>Loading your keys...</p>
                 </div>
                 <div id="emptyState" class="empty-state" style="display: none;">
-                    <div class="empty-icon">🔑</div>
-                    <h3>No TOTP keys yet</h3>
-                    <p>Add your first authenticator key to get started</p>
+                    <div class="empty-icon">—</div>
+                    <h3>No authenticator keys</h3>
+                    <p>Add your first key to get started</p>
                 </div>
                 <div id="keysList" class="keys-list"></div>
             </section>
