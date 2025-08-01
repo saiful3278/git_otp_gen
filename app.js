@@ -5,17 +5,22 @@ class TOTPAuthenticator {
         this.timers = new Map();
         this.isEditing = false;
         this.editingId = null;
+        this.isDarkMode = localStorage.getItem('darkMode') === 'true';
         
         this.init();
     }
 
     async init() {
         this.setupEventListeners();
+        this.initTheme();
         await this.loadKeys();
         this.startGlobalTimer();
     }
 
     setupEventListeners() {
+        // Theme toggle
+        document.getElementById('themeToggle').addEventListener('click', () => this.toggleTheme());
+
         // Modal controls
         document.getElementById('addKeyBtn').addEventListener('click', () => this.showModal());
         document.getElementById('closeModal').addEventListener('click', () => this.hideModal());
@@ -400,6 +405,22 @@ class TOTPAuthenticator {
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
+    }
+
+    initTheme() {
+        if (this.isDarkMode) {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            document.getElementById('themeToggle').textContent = '☀️';
+        } else {
+            document.documentElement.removeAttribute('data-theme');
+            document.getElementById('themeToggle').textContent = '🌙';
+        }
+    }
+
+    toggleTheme() {
+        this.isDarkMode = !this.isDarkMode;
+        localStorage.setItem('darkMode', this.isDarkMode);
+        this.initTheme();
     }
 }
 

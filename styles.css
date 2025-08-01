@@ -1,4 +1,26 @@
 /* Reset and Base Styles */
+:root {
+    --bg-color: #f5f5f5;
+    --text-color: #1a1a1a;
+    --border-color: #cccccc;
+    --card-bg: #ffffff;
+    --hover-bg: #f8f8f8;
+    --primary-color: #000000;
+    --secondary-color: #666666;
+    --totp-bg: #f8f8f8;
+}
+
+[data-theme="dark"] {
+    --bg-color: #1a1a1a;
+    --text-color: #f5f5f5;
+    --border-color: #333333;
+    --card-bg: #2d2d2d;
+    --hover-bg: #3d3d3d;
+    --primary-color: #ffffff;
+    --secondary-color: #a0a0a0;
+    --totp-bg: #252525;
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -7,10 +29,11 @@
 
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    background: #f5f5f5;
+    background: var(--bg-color);
     min-height: 100vh;
-    color: #1a1a1a;
+    color: var(--text-color);
     line-height: 1.5;
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .container {
@@ -63,26 +86,40 @@ header p {
     font-family: inherit;
 }
 
+.theme-toggle {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 100;
+}
+
+.theme-toggle .btn-icon {
+    font-size: 1.2rem;
+    padding: 8px;
+    background: var(--card-bg);
+    border-color: var(--border-color);
+    color: var(--text-color);
+}
+
 .btn-primary {
-    background: #000000;
-    color: white;
-    border: 1px solid #000000;
+    background: var(--primary-color);
+    color: var(--bg-color);
+    border: 1px solid var(--primary-color);
 }
 
 .btn-primary:hover {
-    background: #333333;
-    border-color: #333333;
+    opacity: 0.9;
 }
 
 .btn-secondary {
-    background: #ffffff;
-    color: #333333;
-    border: 1px solid #cccccc;
+    background: var(--card-bg);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
 }
 
 .btn-secondary:hover {
-    background: #f8f8f8;
-    border-color: #999999;
+    background: var(--hover-bg);
+    border-color: var(--secondary-color);
 }
 
 .btn-danger {
@@ -141,13 +178,13 @@ header p {
 }
 
 .modal-content {
-    background: white;
+    background: var(--card-bg);
     border-radius: 8px;
     padding: 0;
     width: 100%;
     max-width: 420px;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-    border: 1px solid #cccccc;
+    border: 1px solid var(--border-color);
     animation: slideUp 0.3s ease;
 }
 
@@ -200,17 +237,19 @@ form {
 .form-group input {
     width: 100%;
     padding: 12px 16px;
-    border: 2px solid #cccccc;
+    border: 2px solid var(--border-color);
     border-radius: 8px;
     font-size: 0.95rem;
     transition: border-color 0.2s ease;
     font-family: inherit;
+    background: var(--card-bg);
+    color: var(--text-color);
 }
 
 .form-group input:focus {
     outline: none;
-    border-color: #000000;
-    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(128, 128, 128, 0.1);
 }
 
 .form-group small {
@@ -233,10 +272,10 @@ form {
 
 /* Keys Section */
 .keys-section {
-    background: #ffffff;
+    background: var(--card-bg);
     border-radius: 8px;
     padding: 24px;
-    border: 1px solid #cccccc;
+    border: 1px solid var(--border-color);
 }
 
 /* Loading State */
@@ -293,15 +332,16 @@ form {
 
 /* Key Card */
 .key-card {
-    background: #ffffff;
+    background: var(--card-bg);
     border-radius: 6px;
     padding: 20px;
-    border: 1px solid #cccccc;
-    transition: border-color 0.2s ease;
+    border: 1px solid var(--border-color);
+    transition: all 0.2s ease;
 }
 
 .key-card:hover {
-    border-color: #999999;
+    border-color: var(--secondary-color);
+    background: var(--hover-bg);
 }
 
 .key-header {
@@ -331,10 +371,10 @@ form {
 .totp-display {
     text-align: center;
     padding: 20px;
-    background: #f8f8f8;
+    background: var(--totp-bg);
     border-radius: 4px;
     margin-bottom: 16px;
-    border: 1px solid #e0e0e0;
+    border: 1px solid var(--border-color);
 }
 
 .totp-code {
@@ -399,7 +439,8 @@ form {
     bottom: 20px;
     left: 50%;
     transform: translateX(-50%) translateY(100px);
-    background: white;
+    background: var(--card-bg);
+    color: var(--text-color);
     padding: 16px 20px;
     border-radius: 12px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
