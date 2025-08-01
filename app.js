@@ -11,6 +11,15 @@ class TOTPAuthenticator {
 
     async init() {
         this.setupEventListeners();
+
+        // Ensure otplib works with Base32 encoded secrets
+        if (window.otplib && window.otplib.authenticator) {
+            window.otplib.authenticator.options = {
+                ...window.otplib.authenticator.options,
+                encoding: 'base32'
+            };
+        }
+
         await this.loadKeys();
         this.startGlobalTimer();
     }
@@ -76,7 +85,9 @@ class TOTPAuthenticator {
         
         const name = document.getElementById('keyName').value.trim();
         const account = document.getElementById('keyAccount').value.trim();
-        const secret = document.getElementById('keySecret').value.trim().replace(/\s/g, '');
+        // Allow users to paste secrets with spaces or lowercase letters
+        const rawSecret = document.getElementById('keySecret').value.trim();
+        const secret = rawSecret.replace(/\s+/g, '').toUpperCase();
         
         if (!name || !secret) {
             this.showToast('Please fill in all required fields', 'error');
