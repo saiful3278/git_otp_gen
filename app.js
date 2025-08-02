@@ -989,9 +989,31 @@ class TOTPAuthenticator {
         const previewEl = document.getElementById('importPreview');
         const listEl = document.getElementById('importKeysList');
         const countEl = document.getElementById('importCount');
+        const summaryEl = document.getElementById('importSummary');
         
-        // Update count
+        // Count new vs existing keys
+        let newKeysCount = 0;
+        let existingKeysCount = 0;
+        
+        keys.forEach(key => {
+            const exists = this.keys.some(existingKey => 
+                existingKey.name === key.name && existingKey.account === (key.account || '')
+            );
+            if (exists) {
+                existingKeysCount++;
+            } else {
+                newKeysCount++;
+            }
+        });
+        
+        // Update count and summary
         countEl.textContent = keys.length;
+        
+        if (existingKeysCount > 0) {
+            summaryEl.innerHTML = `Found <strong>${keys.length}</strong> keys (${newKeysCount} new, ${existingKeysCount} already exist)`;
+        } else {
+            summaryEl.innerHTML = `Found <strong>${keys.length}</strong> keys ready to import`;
+        }
         
         // Clear and populate list
         listEl.innerHTML = '';
@@ -1006,14 +1028,16 @@ class TOTPAuthenticator {
             item.className = 'import-key-item';
             item.innerHTML = `
                 <div class="import-key-info">
-                    <h4>${this.escapeHtml(key.name)}${exists ? ' <span style="color: orange; font-size: 0.8em;">(exists)</span>' : ''}</h4>
+                    <h4>${this.escapeHtml(key.name)}${exists ? ' <span style="color: #f59e0b; font-size: 0.8em; font-weight: normal;">(already exists)</span>' : ''}</h4>
                     <p>${this.escapeHtml(key.account || 'No account specified')}</p>
                 </div>
-                <input type="checkbox" ${exists ? '' : 'checked'} data-index="${index}" ${exists ? 'title="This key already exists"' : ''}>
+                <input type="checkbox" ${exists ? '' : 'checked'} data-index="${index}" ${exists ? 'title="This key already exists - uncheck to skip"' : 'title="Check to import this key"'}>
             `;
             listEl.appendChild(item);
         });
         
+        // Scroll to preview section
+        previewEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         previewEl.style.display = 'block';
     }
 
@@ -1104,8 +1128,20 @@ class TOTPAuthenticator {
     }
 
     cancelImport() {
+        // Hide preview and reset to step 1
         document.getElementById('importPreview').style.display = 'none';
         this.pendingImportKeys = [];
+        
+        // Clear inputs based on current tab
+        const urlTab = document.getElementById('importUrlTab');
+        if (urlTab.classList.contains('active')) {
+            this.clearUrlInput();
+        } else {
+            this.clearFileInput();
+        }
+        
+        // Show a helpful message
+        this.showToast('Import cancelled. You can try again with new data.', 'info');
     }
 }
 
