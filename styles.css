@@ -705,16 +705,22 @@ form {
 
 .import-method-tabs {
     display: flex;
-    margin-bottom: 1.5rem;
-    border-bottom: 1px solid rgba(128, 128, 128, 0.2);
+    margin-bottom: 2rem;
+    border-radius: var(--border-radius);
+    background: rgba(128, 128, 128, 0.05);
+    padding: 0.25rem;
 }
 
 .tab-btn {
     flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
     padding: 0.75rem 1rem;
     background: none;
     border: none;
-    border-bottom: 2px solid transparent;
+    border-radius: calc(var(--border-radius) - 0.125rem);
     color: var(--text-color);
     font-weight: 500;
     cursor: pointer;
@@ -723,7 +729,8 @@ form {
 }
 
 .tab-btn.active {
-    border-bottom-color: var(--accent-color);
+    background: var(--card-bg);
+    box-shadow: var(--shadow-light);
     opacity: 1;
     color: var(--accent-color);
 }
@@ -732,12 +739,164 @@ form {
     opacity: 1;
 }
 
+.tab-btn svg {
+    width: 16px;
+    height: 16px;
+}
+
 .tab-content {
     display: none;
 }
 
 .tab-content.active {
     display: block;
+}
+
+/* Import Steps */
+.import-steps {
+    margin-bottom: 1.5rem;
+}
+
+.import-step {
+    background: var(--card-bg);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    box-shadow: var(--shadow-light);
+}
+
+.step-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.step-number {
+    width: 2rem;
+    height: 2rem;
+    background: var(--accent-color);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+.step-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.step-actions {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+}
+
+/* File Input Styling */
+.file-input-container {
+    position: relative;
+    margin-bottom: 0.5rem;
+}
+
+.file-input {
+    position: absolute;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+}
+
+.file-input-display {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 1.5rem;
+    border: 2px dashed rgba(128, 128, 128, 0.3);
+    border-radius: var(--border-radius);
+    background: rgba(128, 128, 128, 0.05);
+    cursor: pointer;
+    transition: var(--transition);
+    color: var(--text-color);
+    opacity: 0.8;
+}
+
+.file-input-display:hover {
+    border-color: var(--accent-color);
+    background: rgba(var(--accent-color), 0.05);
+    opacity: 1;
+}
+
+.file-input-display svg {
+    opacity: 0.6;
+}
+
+.file-input-container.has-file .file-input-display {
+    border-color: var(--accent-color);
+    background: rgba(var(--accent-color), 0.1);
+    color: var(--accent-color);
+}
+
+/* Input Help */
+.input-help {
+    margin-top: 0.5rem;
+}
+
+.input-help details {
+    margin-top: 0.5rem;
+}
+
+.input-help summary {
+    cursor: pointer;
+    color: var(--accent-color);
+    font-size: 0.875rem;
+    margin-bottom: 0.5rem;
+}
+
+.input-help ol {
+    margin: 0.5rem 0 0 1rem;
+    padding: 0;
+    font-size: 0.875rem;
+    opacity: 0.8;
+}
+
+.input-help li {
+    margin: 0.25rem 0;
+}
+
+/* Preview Section */
+.preview-summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid rgba(128, 128, 128, 0.1);
+}
+
+.preview-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.btn.btn-link {
+    background: none;
+    border: none;
+    color: var(--accent-color);
+    font-size: 0.875rem;
+    padding: 0.25rem 0.5rem;
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.btn.btn-link:hover {
+    opacity: 0.8;
 }
 
 .import-keys-list {
@@ -754,6 +913,11 @@ form {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    transition: var(--transition);
+}
+
+.import-key-item:hover {
+    background: rgba(128, 128, 128, 0.05);
 }
 
 .import-key-item:last-child {
@@ -773,12 +937,48 @@ form {
     opacity: 0.7;
 }
 
+.import-key-item input[type="checkbox"] {
+    width: 1.125rem;
+    height: 1.125rem;
+    cursor: pointer;
+}
+
 .import-actions {
     display: flex;
     gap: 0.75rem;
     justify-content: center;
     margin-top: 1.5rem;
     flex-wrap: wrap;
+}
+
+/* Success State */
+.success-state {
+    text-align: center;
+    padding: 2rem;
+}
+
+.success-icon {
+    width: 4rem;
+    height: 4rem;
+    background: #10b981;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin: 0 auto 1rem;
+}
+
+.success-state h3 {
+    margin: 0 0 0.5rem 0;
+    color: var(--text-color);
+}
+
+.success-state p {
+    margin: 0;
+    opacity: 0.8;
 }
 
 /* Responsive Design for New Elements */
@@ -829,6 +1029,48 @@ form {
     
     .header-actions {
         margin-bottom: 1.5rem;
+    }
+    
+    .import-method-tabs {
+        flex-direction: column;
+        padding: 0;
+        background: none;
+    }
+    
+    .tab-btn {
+        border-radius: var(--border-radius);
+        margin-bottom: 0.5rem;
+    }
+    
+    .tab-btn.active {
+        background: var(--accent-color);
+        color: white;
+    }
+    
+    .step-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+    
+    .step-number {
+        align-self: flex-start;
+    }
+    
+    .preview-summary {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+    
+    .file-input-display {
+        padding: 1rem;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .input-help details {
+        font-size: 0.8rem;
     }
 }
 

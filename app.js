@@ -44,6 +44,16 @@ class TOTPAuthenticator {
         document.getElementById('parseFileBtn').addEventListener('click', () => this.parseImportFile());
         document.getElementById('confirmImportBtn').addEventListener('click', () => this.confirmImport());
         document.getElementById('cancelImportBtn').addEventListener('click', () => this.cancelImport());
+        document.getElementById('clearUrlBtn').addEventListener('click', () => this.clearUrlInput());
+        document.getElementById('clearFileBtn').addEventListener('click', () => this.clearFileInput());
+        document.getElementById('selectAllBtn').addEventListener('click', () => this.selectAllKeys());
+        document.getElementById('selectNoneBtn').addEventListener('click', () => this.selectNoneKeys());
+        
+        // File input handling
+        document.getElementById('importFile').addEventListener('change', (e) => this.handleFileSelect(e));
+        
+        // URL input handling
+        document.getElementById('importUrl').addEventListener('input', (e) => this.handleUrlInput(e));
         
         // Form submission
         document.getElementById('keyForm').addEventListener('submit', (e) => this.handleFormSubmit(e));
@@ -511,16 +521,88 @@ class TOTPAuthenticator {
         // Reset form inputs
         document.getElementById('importUrl').value = '';
         document.getElementById('importFile').value = '';
+        document.getElementById('fileInputLabel').textContent = 'Choose backup file';
         
-        // Hide preview
+        // Reset file input container
+        const fileContainer = document.querySelector('.file-input-container');
+        fileContainer.classList.remove('has-file');
+        
+        // Hide all states
         document.getElementById('importPreview').style.display = 'none';
         document.getElementById('importLoading').style.display = 'none';
+        document.getElementById('importSuccess').style.display = 'none';
+        
+        // Hide clear buttons
+        document.getElementById('clearUrlBtn').style.display = 'none';
+        document.getElementById('clearFileBtn').style.display = 'none';
+        
+        // Reset button states
+        document.getElementById('parseFileBtn').disabled = true;
         
         // Reset to URL tab
         this.switchImportTab('url');
         
         // Clear any stored import data
         this.pendingImportKeys = [];
+    }
+
+    clearUrlInput() {
+        document.getElementById('importUrl').value = '';
+        document.getElementById('clearUrlBtn').style.display = 'none';
+        document.getElementById('importPreview').style.display = 'none';
+    }
+
+    clearFileInput() {
+        document.getElementById('importFile').value = '';
+        document.getElementById('fileInputLabel').textContent = 'Choose backup file';
+        document.getElementById('clearFileBtn').style.display = 'none';
+        document.getElementById('parseFileBtn').disabled = true;
+        
+        const fileContainer = document.querySelector('.file-input-container');
+        fileContainer.classList.remove('has-file');
+        document.getElementById('importPreview').style.display = 'none';
+    }
+
+    handleFileSelect(event) {
+        const file = event.target.files[0];
+        const label = document.getElementById('fileInputLabel');
+        const parseBtn = document.getElementById('parseFileBtn');
+        const clearBtn = document.getElementById('clearFileBtn');
+        const fileContainer = document.querySelector('.file-input-container');
+        
+        if (file) {
+            label.textContent = file.name;
+            parseBtn.disabled = false;
+            clearBtn.style.display = 'inline-flex';
+            fileContainer.classList.add('has-file');
+        } else {
+            label.textContent = 'Choose backup file';
+            parseBtn.disabled = true;
+            clearBtn.style.display = 'none';
+            fileContainer.classList.remove('has-file');
+        }
+    }
+
+    selectAllKeys() {
+        const checkboxes = document.querySelectorAll('#importKeysList input[type="checkbox"]');
+        checkboxes.forEach(cb => cb.checked = true);
+    }
+
+    selectNoneKeys() {
+        const checkboxes = document.querySelectorAll('#importKeysList input[type="checkbox"]');
+        checkboxes.forEach(cb => cb.checked = false);
+    }
+
+    handleUrlInput(event) {
+        const url = event.target.value.trim();
+        const clearBtn = document.getElementById('clearUrlBtn');
+        
+        if (url) {
+            clearBtn.style.display = 'inline-flex';
+        } else {
+            clearBtn.style.display = 'none';
+            document.getElementById('importPreview').style.display = 'none';
+        }
     }
 
     // Export Functionality
@@ -703,6 +785,8 @@ class TOTPAuthenticator {
     // Import Functionality
     async parseImportUrl() {
         const url = document.getElementById('importUrl').value.trim();
+        const loadingEl = document.getElementById('importLoading');
+        const loadingText = document.getElementById('importLoadingText');
         
         if (!url) {
             this.showToast('Please enter a migration URL', 'error');
@@ -710,9 +794,14 @@ class TOTPAuthenticator {
         }
 
         if (!url.startsWith('otpauth-migration://')) {
-            this.showToast('Invalid migration URL format', 'error');
+            this.showToast('Invalid migration URL format. URL should start with "otpauth-migration://"', 'error');
             return;
         }
+
+        // Show loading state
+        loadingEl.style.display = 'block';
+        loadingText.textContent = 'Parsing migration URL...';
+        document.getElementById('clearUrlBtn').style.display = 'inline-flex';
 
         try {
             const urlObj = new URL(url);
@@ -720,42 +809,80 @@ class TOTPAuthenticator {
             
             if (!data) {
                 this.showToast('No data found in migration URL', 'error');
+                loadingEl.style.display = 'none';
                 return;
             }
 
+            loadingText.textContent = 'Decoding TOTP keys...';
             const keys = await this.decodeMigrationData(data);
+            
+            if (keys.length === 0) {
+                this.showToast('No TOTP keys found in migration URL', 'error');
+                loadingEl.style.display = 'none';
+                return;
+            }
+            
+            loadingEl.style.display = 'none';
             this.showImportPreview(keys);
             
         } catch (error) {
             console.error('Error parsing migration URL:', error);
-            this.showToast('Failed to parse migration URL', 'error');
+            loadingEl.style.display = 'none';
+            this.showToast('Failed to parse migration URL. Please check the URL format.', 'error');
         }
     }
 
     async parseImportFile() {
         const fileInput = document.getElementById('importFile');
         const file = fileInput.files[0];
+        const loadingEl = document.getElementById('importLoading');
+        const loadingText = document.getElementById('importLoadingText');
         
         if (!file) {
             this.showToast('Please select a file', 'error');
             return;
         }
 
+        // Show loading state
+        loadingEl.style.display = 'block';
+        loadingText.textContent = 'Reading backup file...';
+
         try {
+            loadingText.textContent = 'Parsing backup data...';
             const text = await file.text();
             const data = JSON.parse(text);
             
             // Validate JSON structure
-            if (!Array.isArray(data) || !data.every(key => key.name && key.secret)) {
-                this.showToast('Invalid backup file format', 'error');
+            if (!Array.isArray(data)) {
+                this.showToast('Invalid backup file format: Expected an array of keys', 'error');
+                loadingEl.style.display = 'none';
                 return;
             }
 
-            this.showImportPreview(data);
+            const validKeys = data.filter(key => key.name && key.secret);
+            
+            if (validKeys.length === 0) {
+                this.showToast('No valid TOTP keys found in backup file', 'error');
+                loadingEl.style.display = 'none';
+                return;
+            }
+
+            if (validKeys.length < data.length) {
+                this.showToast(`Found ${validKeys.length} valid keys out of ${data.length} entries`, 'info');
+            }
+            
+            loadingEl.style.display = 'none';
+            this.showImportPreview(validKeys);
             
         } catch (error) {
             console.error('Error parsing import file:', error);
-            this.showToast('Failed to parse backup file', 'error');
+            loadingEl.style.display = 'none';
+            
+            if (error instanceof SyntaxError) {
+                this.showToast('Invalid JSON file format. Please select a valid backup file.', 'error');
+            } else {
+                this.showToast('Failed to parse backup file', 'error');
+            }
         }
     }
 
@@ -861,18 +988,28 @@ class TOTPAuthenticator {
         
         const previewEl = document.getElementById('importPreview');
         const listEl = document.getElementById('importKeysList');
+        const countEl = document.getElementById('importCount');
         
+        // Update count
+        countEl.textContent = keys.length;
+        
+        // Clear and populate list
         listEl.innerHTML = '';
         
         keys.forEach((key, index) => {
+            // Check if key already exists
+            const exists = this.keys.some(existingKey => 
+                existingKey.name === key.name && existingKey.account === (key.account || '')
+            );
+            
             const item = document.createElement('div');
             item.className = 'import-key-item';
             item.innerHTML = `
                 <div class="import-key-info">
-                    <h4>${this.escapeHtml(key.name)}</h4>
-                    <p>${this.escapeHtml(key.account)}</p>
+                    <h4>${this.escapeHtml(key.name)}${exists ? ' <span style="color: orange; font-size: 0.8em;">(exists)</span>' : ''}</h4>
+                    <p>${this.escapeHtml(key.account || 'No account specified')}</p>
                 </div>
-                <input type="checkbox" checked data-index="${index}">
+                <input type="checkbox" ${exists ? '' : 'checked'} data-index="${index}" ${exists ? 'title="This key already exists"' : ''}>
             `;
             listEl.appendChild(item);
         });
@@ -882,49 +1019,81 @@ class TOTPAuthenticator {
 
     async confirmImport() {
         const loadingEl = document.getElementById('importLoading');
+        const loadingText = document.getElementById('importLoadingText');
         const previewEl = document.getElementById('importPreview');
+        const successEl = document.getElementById('importSuccess');
+        const successText = document.getElementById('importResultText');
         
-        loadingEl.style.display = 'block';
+        // Get selected keys
+        const checkboxes = document.querySelectorAll('#importKeysList input[type="checkbox"]:checked');
+        const selectedKeys = Array.from(checkboxes).map(cb => 
+            this.pendingImportKeys[parseInt(cb.dataset.index)]
+        );
+
+        if (selectedKeys.length === 0) {
+            this.showToast('No keys selected for import', 'error');
+            return;
+        }
+
+        // Show loading state
         previewEl.style.display = 'none';
+        loadingEl.style.display = 'block';
+        loadingText.textContent = `Importing ${selectedKeys.length} key(s)...`;
 
         try {
-            // Get selected keys
-            const checkboxes = document.querySelectorAll('#importKeysList input[type="checkbox"]:checked');
-            const selectedKeys = Array.from(checkboxes).map(cb => 
-                this.pendingImportKeys[parseInt(cb.dataset.index)]
-            );
-
-            if (selectedKeys.length === 0) {
-                this.showToast('No keys selected for import', 'error');
-                return;
-            }
-
             // Import selected keys
             let importedCount = 0;
-            for (const key of selectedKeys) {
+            let skippedCount = 0;
+            let errorCount = 0;
+            
+            for (let i = 0; i < selectedKeys.length; i++) {
+                const key = selectedKeys[i];
+                loadingText.textContent = `Importing key ${i + 1} of ${selectedKeys.length}: ${key.name}`;
+                
                 try {
                     // Check if key already exists
                     const exists = this.keys.some(existingKey => 
-                        existingKey.name === key.name && existingKey.account === key.account
+                        existingKey.name === key.name && existingKey.account === (key.account || '')
                     );
                     
                     if (!exists) {
                         await this.addKey(key);
                         importedCount++;
+                    } else {
+                        skippedCount++;
                     }
                 } catch (error) {
                     console.error('Error importing key:', key.name, error);
+                    errorCount++;
                 }
             }
 
             loadingEl.style.display = 'none';
-            this.hideImportModal();
             
+            // Show success state
             if (importedCount > 0) {
                 await this.loadKeys();
-                this.showToast(`Imported ${importedCount} key(s) successfully`, 'success');
+                successText.textContent = `Successfully imported ${importedCount} key(s).`;
+                if (skippedCount > 0) {
+                    successText.textContent += ` Skipped ${skippedCount} duplicate(s).`;
+                }
+                if (errorCount > 0) {
+                    successText.textContent += ` ${errorCount} error(s) occurred.`;
+                }
+                
+                successEl.style.display = 'block';
+                
+                // Auto-close after 3 seconds
+                setTimeout(() => {
+                    this.hideImportModal();
+                }, 3000);
+                
             } else {
-                this.showToast('No new keys were imported (duplicates skipped)', 'info');
+                this.showToast(
+                    skippedCount > 0 ? 'All selected keys already exist' : 'No keys were imported',
+                    'info'
+                );
+                this.hideImportModal();
             }
             
         } catch (error) {
