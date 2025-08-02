@@ -607,6 +607,231 @@ form {
     }
 }
 
+/* Header Actions */
+.header-actions {
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: center;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.action-buttons .btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+}
+
+.action-buttons .btn svg {
+    width: 16px;
+    height: 16px;
+}
+
+/* Export Modal Styles */
+.export-content {
+    padding: 1rem 0;
+}
+
+.export-description {
+    margin-bottom: 1.5rem;
+    text-align: center;
+    color: var(--text-color);
+    opacity: 0.8;
+}
+
+.qr-container {
+    display: flex;
+    justify-content: center;
+    margin: 1.5rem 0;
+    padding: 1rem;
+    background: var(--card-bg);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-light);
+}
+
+.qr-container canvas {
+    max-width: 100%;
+    height: auto;
+}
+
+.export-actions {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: center;
+    margin: 1.5rem 0;
+    flex-wrap: wrap;
+}
+
+.export-details {
+    margin-top: 1.5rem;
+    border: 1px solid rgba(128, 128, 128, 0.2);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+}
+
+.export-details summary {
+    padding: 0.75rem 1rem;
+    background: rgba(128, 128, 128, 0.1);
+    cursor: pointer;
+    font-weight: 500;
+    transition: var(--transition);
+}
+
+.export-details summary:hover {
+    background: rgba(128, 128, 128, 0.15);
+}
+
+.export-details .form-group {
+    padding: 1rem;
+    border-top: 1px solid rgba(128, 128, 128, 0.1);
+}
+
+.export-details textarea {
+    font-family: 'Monaco', 'Consolas', monospace;
+    font-size: 0.8rem;
+    resize: vertical;
+}
+
+/* Import Modal Styles */
+.import-content {
+    padding: 1rem 0;
+}
+
+.import-method-tabs {
+    display: flex;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid rgba(128, 128, 128, 0.2);
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--text-color);
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
+    opacity: 0.7;
+}
+
+.tab-btn.active {
+    border-bottom-color: var(--accent-color);
+    opacity: 1;
+    color: var(--accent-color);
+}
+
+.tab-btn:hover {
+    opacity: 1;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.import-keys-list {
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid rgba(128, 128, 128, 0.2);
+    border-radius: var(--border-radius);
+    margin: 1rem 0;
+}
+
+.import-key-item {
+    padding: 0.75rem;
+    border-bottom: 1px solid rgba(128, 128, 128, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.import-key-item:last-child {
+    border-bottom: none;
+}
+
+.import-key-info h4 {
+    margin: 0;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.import-key-info p {
+    margin: 0.25rem 0 0 0;
+    font-size: 0.8rem;
+    opacity: 0.7;
+}
+
+.import-actions {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: center;
+    margin-top: 1.5rem;
+    flex-wrap: wrap;
+}
+
+/* Responsive Design for New Elements */
+@media (max-width: 480px) {
+    .action-buttons {
+        justify-content: center;
+        width: 100%;
+    }
+    
+    .action-buttons .btn {
+        flex: 1;
+        min-width: 120px;
+        justify-content: center;
+    }
+    
+    .export-actions,
+    .import-actions {
+        flex-direction: column;
+    }
+    
+    .export-actions .btn,
+    .import-actions .btn {
+        width: 100%;
+    }
+    
+    .import-method-tabs {
+        flex-direction: column;
+    }
+    
+    .tab-btn {
+        border-bottom: 1px solid rgba(128, 128, 128, 0.2);
+        border-right: none;
+    }
+    
+    .tab-btn.active {
+        border-bottom-color: var(--accent-color);
+        background: rgba(var(--accent-color), 0.1);
+    }
+    
+    .qr-container {
+        padding: 0.5rem;
+    }
+    
+    .qr-container canvas {
+        max-width: 280px;
+        height: auto;
+    }
+    
+    .header-actions {
+        margin-bottom: 1.5rem;
+    }
+}
+
 /* PWA Support */
 @media (display-mode: standalone) {
     body {

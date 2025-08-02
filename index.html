@@ -17,6 +17,28 @@
             </button>
         </div>
         <main>
+            <!-- Header with Actions -->
+            <div class="header-actions">
+                <div class="action-buttons">
+                    <button id="exportBtn" class="btn btn-secondary" title="Export all keys">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="7,10 12,15 17,10"/>
+                            <line x1="12" y1="15" x2="12" y2="3"/>
+                        </svg>
+                        Export
+                    </button>
+                    <button id="importBtn" class="btn btn-secondary" title="Import keys">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="17,8 12,3 7,8"/>
+                            <line x1="12" y1="3" x2="12" y2="15"/>
+                        </svg>
+                        Import
+                    </button>
+                </div>
+            </div>
+
             <!-- Floating Add Button -->
             <button id="addKeyBtn" class="fab-button">
                 +
@@ -48,6 +70,88 @@
                             <button type="submit" id="saveBtn" class="btn btn-primary">Save</button>
                         </div>
                     </form>
+                </div>
+            </div>
+
+            <!-- Export Modal -->
+            <div id="exportModal" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>Export TOTP Keys</h2>
+                        <button id="closeExportModal" class="close-btn">&times;</button>
+                    </div>
+                    <div class="export-content">
+                        <div id="exportLoading" class="loading-state" style="display: none;">
+                            <div class="spinner"></div>
+                            <p>Generating QR code...</p>
+                        </div>
+                        <div id="exportSuccess" style="display: none;">
+                            <p class="export-description">Scan this QR code with Google Authenticator or any compatible app to import all your TOTP keys:</p>
+                            <div class="qr-container">
+                                <canvas id="exportQRCode"></canvas>
+                            </div>
+                            <div class="export-actions">
+                                <button id="downloadQRBtn" class="btn btn-secondary">Download QR Code</button>
+                                <button id="copyExportUrlBtn" class="btn btn-secondary">Copy URL</button>
+                                <button id="downloadJsonBtn" class="btn btn-secondary">Download JSON Backup</button>
+                            </div>
+                            <details class="export-details">
+                                <summary>Advanced Options</summary>
+                                <div class="form-group">
+                                    <label>Export URL:</label>
+                                    <textarea id="exportUrlText" readonly rows="4"></textarea>
+                                </div>
+                            </details>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Import Modal -->
+            <div id="importModal" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>Import TOTP Keys</h2>
+                        <button id="closeImportModal" class="close-btn">&times;</button>
+                    </div>
+                    <div class="import-content">
+                        <div class="import-method-tabs">
+                            <button id="importUrlTab" class="tab-btn active">Paste URL</button>
+                            <button id="importFileTab" class="tab-btn">Upload File</button>
+                        </div>
+                        
+                        <div id="importUrlContent" class="tab-content active">
+                            <div class="form-group">
+                                <label for="importUrl">Paste the otpauth-migration:// URL:</label>
+                                <textarea id="importUrl" placeholder="otpauth-migration://offline?data=..." rows="4"></textarea>
+                                <small>Paste the migration URL from Google Authenticator or compatible apps</small>
+                            </div>
+                            <button id="parseUrlBtn" class="btn btn-primary">Parse URL</button>
+                        </div>
+                        
+                        <div id="importFileContent" class="tab-content">
+                            <div class="form-group">
+                                <label for="importFile">Upload JSON backup file:</label>
+                                <input type="file" id="importFile" accept=".json">
+                                <small>Select a JSON backup file exported from this app</small>
+                            </div>
+                            <button id="parseFileBtn" class="btn btn-primary">Parse File</button>
+                        </div>
+                        
+                        <div id="importPreview" style="display: none;">
+                            <h3>Preview Keys to Import:</h3>
+                            <div id="importKeysList" class="import-keys-list"></div>
+                            <div class="import-actions">
+                                <button id="confirmImportBtn" class="btn btn-primary">Import Keys</button>
+                                <button id="cancelImportBtn" class="btn btn-secondary">Cancel</button>
+                            </div>
+                        </div>
+                        
+                        <div id="importLoading" class="loading-state" style="display: none;">
+                            <div class="spinner"></div>
+                            <p>Importing keys...</p>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -106,10 +210,12 @@
         window.analytics = analytics;
     </script>
     
-    <!-- OTPAuth -->
+    <!-- Libraries -->
     <script src="https://cdn.jsdelivr.net/npm/otpauth@9.4.0/dist/otpauth.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/protobufjs@7.4.0/dist/protobuf.min.js"></script>
     
     <!-- Main App Script -->
-    <script src="app.js?v=2"></script>
+    <script src="app.js?v=3"></script>
 </body>
 </html>

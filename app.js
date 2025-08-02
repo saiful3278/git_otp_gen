@@ -26,6 +26,25 @@ class TOTPAuthenticator {
         document.getElementById('closeModal').addEventListener('click', () => this.hideModal());
         document.getElementById('cancelBtn').addEventListener('click', () => this.hideModal());
         
+        // Export/Import buttons
+        document.getElementById('exportBtn').addEventListener('click', () => this.showExportModal());
+        document.getElementById('importBtn').addEventListener('click', () => this.showImportModal());
+        
+        // Export modal controls
+        document.getElementById('closeExportModal').addEventListener('click', () => this.hideExportModal());
+        document.getElementById('downloadQRBtn').addEventListener('click', () => this.downloadQRCode());
+        document.getElementById('copyExportUrlBtn').addEventListener('click', () => this.copyExportUrl());
+        document.getElementById('downloadJsonBtn').addEventListener('click', () => this.downloadJsonBackup());
+        
+        // Import modal controls
+        document.getElementById('closeImportModal').addEventListener('click', () => this.hideImportModal());
+        document.getElementById('importUrlTab').addEventListener('click', () => this.switchImportTab('url'));
+        document.getElementById('importFileTab').addEventListener('click', () => this.switchImportTab('file'));
+        document.getElementById('parseUrlBtn').addEventListener('click', () => this.parseImportUrl());
+        document.getElementById('parseFileBtn').addEventListener('click', () => this.parseImportFile());
+        document.getElementById('confirmImportBtn').addEventListener('click', () => this.confirmImport());
+        document.getElementById('cancelImportBtn').addEventListener('click', () => this.cancelImport());
+        
         // Form submission
         document.getElementById('keyForm').addEventListener('submit', (e) => this.handleFormSubmit(e));
         
@@ -36,10 +55,28 @@ class TOTPAuthenticator {
             }
         });
 
+        document.getElementById('exportModal').addEventListener('click', (e) => {
+            if (e.target.id === 'exportModal') {
+                this.hideExportModal();
+            }
+        });
+
+        document.getElementById('importModal').addEventListener('click', (e) => {
+            if (e.target.id === 'importModal') {
+                this.hideImportModal();
+            }
+        });
+
         // Escape key to close modal
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && document.getElementById('addKeyModal').classList.contains('show')) {
-                this.hideModal();
+            if (e.key === 'Escape') {
+                if (document.getElementById('addKeyModal').classList.contains('show')) {
+                    this.hideModal();
+                } else if (document.getElementById('exportModal').classList.contains('show')) {
+                    this.hideExportModal();
+                } else if (document.getElementById('importModal').classList.contains('show')) {
+                    this.hideImportModal();
+                }
             }
         });
     }
@@ -429,6 +466,477 @@ class TOTPAuthenticator {
         this.isDarkMode = !this.isDarkMode;
         localStorage.setItem('darkMode', this.isDarkMode);
         this.initTheme();
+    }
+
+    // Export Modal Management
+    showExportModal() {
+        const modal = document.getElementById('exportModal');
+        modal.classList.add('show');
+        this.generateExportQR();
+    }
+
+    hideExportModal() {
+        const modal = document.getElementById('exportModal');
+        modal.classList.remove('show');
+    }
+
+    // Import Modal Management
+    showImportModal() {
+        const modal = document.getElementById('importModal');
+        modal.classList.add('show');
+        this.resetImportModal();
+    }
+
+    hideImportModal() {
+        const modal = document.getElementById('importModal');
+        modal.classList.remove('show');
+        this.resetImportModal();
+    }
+
+    switchImportTab(tab) {
+        // Update tab buttons
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+        
+        if (tab === 'url') {
+            document.getElementById('importUrlTab').classList.add('active');
+            document.getElementById('importUrlContent').classList.add('active');
+        } else {
+            document.getElementById('importFileTab').classList.add('active');
+            document.getElementById('importFileContent').classList.add('active');
+        }
+    }
+
+    resetImportModal() {
+        // Reset form inputs
+        document.getElementById('importUrl').value = '';
+        document.getElementById('importFile').value = '';
+        
+        // Hide preview
+        document.getElementById('importPreview').style.display = 'none';
+        document.getElementById('importLoading').style.display = 'none';
+        
+        // Reset to URL tab
+        this.switchImportTab('url');
+        
+        // Clear any stored import data
+        this.pendingImportKeys = [];
+    }
+
+    // Export Functionality
+    async generateExportQR() {
+        const loadingEl = document.getElementById('exportLoading');
+        const successEl = document.getElementById('exportSuccess');
+        
+        loadingEl.style.display = 'block';
+        successEl.style.display = 'none';
+
+        try {
+            if (this.keys.length === 0) {
+                this.showToast('No keys to export', 'error');
+                this.hideExportModal();
+                return;
+            }
+
+            // Create Google Authenticator migration URL
+            const migrationUrl = await this.createMigrationUrl();
+            
+            // Generate QR code
+            const canvas = document.getElementById('exportQRCode');
+            await QRCode.toCanvas(canvas, migrationUrl, {
+                width: 256,
+                margin: 2,
+                color: {
+                    dark: getComputedStyle(document.documentElement).getPropertyValue('--text-color').trim() || '#000000',
+                    light: getComputedStyle(document.documentElement).getPropertyValue('--card-bg').trim() || '#FFFFFF'
+                }
+            });
+
+            // Set export URL in textarea
+            document.getElementById('exportUrlText').value = migrationUrl;
+            
+            loadingEl.style.display = 'none';
+            successEl.style.display = 'block';
+            
+            this.currentExportUrl = migrationUrl;
+            
+        } catch (error) {
+            console.error('Error generating export QR:', error);
+            this.showToast('Failed to generate export QR code', 'error');
+            loadingEl.style.display = 'none';
+            this.hideExportModal();
+        }
+    }
+
+    async createMigrationUrl() {
+        // Create protobuf payload for Google Authenticator
+        const migrationPayload = {
+            otpParameters: this.keys.map(key => ({
+                secret: this.base32ToUint8Array(key.secret),
+                name: key.account || key.name,
+                issuer: key.name,
+                algorithm: 1, // SHA1
+                digits: 6,
+                type: 2, // TOTP
+                counter: 0
+            })),
+            version: 1,
+            batchSize: this.keys.length,
+            batchIndex: 0,
+            batchId: Math.floor(Math.random() * 1000000)
+        };
+
+        // Create protobuf message using protobufjs
+        const root = await protobuf.parse(`
+            syntax = "proto3";
+            message MigrationPayload {
+                repeated OtpParameters otp_parameters = 1;
+                int32 version = 2;
+                int32 batch_size = 3;
+                int32 batch_index = 4;
+                int32 batch_id = 5;
+            }
+            message OtpParameters {
+                bytes secret = 1;
+                string name = 2;
+                string issuer = 3;
+                Algorithm algorithm = 4;
+                DigitCount digits = 5;
+                OtpType type = 6;
+                int64 counter = 7;
+            }
+            enum Algorithm {
+                ALGORITHM_UNSPECIFIED = 0;
+                ALGORITHM_SHA1 = 1;
+                ALGORITHM_SHA256 = 2;
+                ALGORITHM_SHA512 = 3;
+                ALGORITHM_MD5 = 4;
+            }
+            enum DigitCount {
+                DIGIT_COUNT_UNSPECIFIED = 0;
+                DIGIT_COUNT_SIX = 1;
+                DIGIT_COUNT_EIGHT = 2;
+            }
+            enum OtpType {
+                OTP_TYPE_UNSPECIFIED = 0;
+                OTP_TYPE_HOTP = 1;
+                OTP_TYPE_TOTP = 2;
+            }
+        `).root;
+
+        const MigrationPayload = root.lookupType('MigrationPayload');
+        
+        // Encode the payload
+        const message = MigrationPayload.create(migrationPayload);
+        const buffer = MigrationPayload.encode(message).finish();
+        
+        // Convert to base64url
+        const base64 = btoa(String.fromCharCode.apply(null, buffer));
+        const base64url = base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+        
+        return `otpauth-migration://offline?data=${base64url}`;
+    }
+
+    base32ToUint8Array(base32) {
+        const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+        let bits = '';
+        let result = new Uint8Array(Math.floor(base32.length * 5 / 8));
+        
+        // Convert base32 to bit string
+        for (let i = 0; i < base32.length; i++) {
+            const val = alphabet.indexOf(base32[i]);
+            if (val === -1) continue;
+            bits += val.toString(2).padStart(5, '0');
+        }
+        
+        // Convert bit string to bytes
+        for (let i = 0; i < result.length; i++) {
+            const byteStr = bits.substr(i * 8, 8);
+            if (byteStr.length === 8) {
+                result[i] = parseInt(byteStr, 2);
+            }
+        }
+        
+        return result;
+    }
+
+    downloadQRCode() {
+        const canvas = document.getElementById('exportQRCode');
+        const link = document.createElement('a');
+        link.download = `TOTP-Export-${new Date().getTime()}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+        this.showToast('QR code downloaded', 'success');
+    }
+
+    async copyExportUrl() {
+        try {
+            await navigator.clipboard.writeText(this.currentExportUrl);
+            this.showToast('Export URL copied to clipboard', 'success');
+        } catch (error) {
+            console.error('Failed to copy URL:', error);
+            this.showToast('Failed to copy URL', 'error');
+        }
+    }
+
+    downloadJsonBackup() {
+        const exportData = this.keys.map(key => ({
+            name: key.name,
+            account: key.account || '',
+            secret: key.secret,
+            createdAt: key.createdAt
+        }));
+
+        const jsonString = JSON.stringify(exportData, null, 2);
+        const blob = new Blob([jsonString], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        
+        const link = document.createElement('a');
+        link.download = `TOTP-Backup-${new Date().toISOString().split('T')[0]}.json`;
+        link.href = url;
+        link.click();
+        
+        URL.revokeObjectURL(url);
+        this.showToast('JSON backup downloaded', 'success');
+    }
+
+    // Import Functionality
+    async parseImportUrl() {
+        const url = document.getElementById('importUrl').value.trim();
+        
+        if (!url) {
+            this.showToast('Please enter a migration URL', 'error');
+            return;
+        }
+
+        if (!url.startsWith('otpauth-migration://')) {
+            this.showToast('Invalid migration URL format', 'error');
+            return;
+        }
+
+        try {
+            const urlObj = new URL(url);
+            const data = urlObj.searchParams.get('data');
+            
+            if (!data) {
+                this.showToast('No data found in migration URL', 'error');
+                return;
+            }
+
+            const keys = await this.decodeMigrationData(data);
+            this.showImportPreview(keys);
+            
+        } catch (error) {
+            console.error('Error parsing migration URL:', error);
+            this.showToast('Failed to parse migration URL', 'error');
+        }
+    }
+
+    async parseImportFile() {
+        const fileInput = document.getElementById('importFile');
+        const file = fileInput.files[0];
+        
+        if (!file) {
+            this.showToast('Please select a file', 'error');
+            return;
+        }
+
+        try {
+            const text = await file.text();
+            const data = JSON.parse(text);
+            
+            // Validate JSON structure
+            if (!Array.isArray(data) || !data.every(key => key.name && key.secret)) {
+                this.showToast('Invalid backup file format', 'error');
+                return;
+            }
+
+            this.showImportPreview(data);
+            
+        } catch (error) {
+            console.error('Error parsing import file:', error);
+            this.showToast('Failed to parse backup file', 'error');
+        }
+    }
+
+    async decodeMigrationData(base64Data) {
+        try {
+            // Convert base64url to base64
+            let base64 = base64Data.replace(/-/g, '+').replace(/_/g, '/');
+            
+            // Add padding if needed
+            while (base64.length % 4) {
+                base64 += '=';
+            }
+            
+            // Decode base64 to binary
+            const binaryString = atob(base64);
+            const buffer = new Uint8Array(binaryString.length);
+            for (let i = 0; i < binaryString.length; i++) {
+                buffer[i] = binaryString.charCodeAt(i);
+            }
+
+            // Parse protobuf
+            const root = await protobuf.parse(`
+                syntax = "proto3";
+                message MigrationPayload {
+                    repeated OtpParameters otp_parameters = 1;
+                    int32 version = 2;
+                    int32 batch_size = 3;
+                    int32 batch_index = 4;
+                    int32 batch_id = 5;
+                }
+                message OtpParameters {
+                    bytes secret = 1;
+                    string name = 2;
+                    string issuer = 3;
+                    Algorithm algorithm = 4;
+                    DigitCount digits = 5;
+                    OtpType type = 6;
+                    int64 counter = 7;
+                }
+                enum Algorithm {
+                    ALGORITHM_UNSPECIFIED = 0;
+                    ALGORITHM_SHA1 = 1;
+                    ALGORITHM_SHA256 = 2;
+                    ALGORITHM_SHA512 = 3;
+                    ALGORITHM_MD5 = 4;
+                }
+                enum DigitCount {
+                    DIGIT_COUNT_UNSPECIFIED = 0;
+                    DIGIT_COUNT_SIX = 1;
+                    DIGIT_COUNT_EIGHT = 2;
+                }
+                enum OtpType {
+                    OTP_TYPE_UNSPECIFIED = 0;
+                    OTP_TYPE_HOTP = 1;
+                    OTP_TYPE_TOTP = 2;
+                }
+            `).root;
+
+            const MigrationPayload = root.lookupType('MigrationPayload');
+            const message = MigrationPayload.decode(buffer);
+            
+            // Convert to our format
+            const keys = message.otpParameters
+                .filter(param => param.type === 2) // Only TOTP
+                .map(param => ({
+                    name: param.issuer || 'Unknown Service',
+                    account: param.name || '',
+                    secret: this.uint8ArrayToBase32(param.secret),
+                    createdAt: new Date().toISOString()
+                }));
+
+            return keys;
+            
+        } catch (error) {
+            console.error('Error decoding migration data:', error);
+            throw new Error('Failed to decode migration data');
+        }
+    }
+
+    uint8ArrayToBase32(buffer) {
+        const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+        let bits = '';
+        let result = '';
+        
+        // Convert bytes to bit string
+        for (let i = 0; i < buffer.length; i++) {
+            bits += buffer[i].toString(2).padStart(8, '0');
+        }
+        
+        // Convert bit string to base32
+        for (let i = 0; i < bits.length; i += 5) {
+            const chunk = bits.substr(i, 5);
+            if (chunk.length === 5) {
+                result += alphabet[parseInt(chunk, 2)];
+            }
+        }
+        
+        return result;
+    }
+
+    showImportPreview(keys) {
+        this.pendingImportKeys = keys;
+        
+        const previewEl = document.getElementById('importPreview');
+        const listEl = document.getElementById('importKeysList');
+        
+        listEl.innerHTML = '';
+        
+        keys.forEach((key, index) => {
+            const item = document.createElement('div');
+            item.className = 'import-key-item';
+            item.innerHTML = `
+                <div class="import-key-info">
+                    <h4>${this.escapeHtml(key.name)}</h4>
+                    <p>${this.escapeHtml(key.account)}</p>
+                </div>
+                <input type="checkbox" checked data-index="${index}">
+            `;
+            listEl.appendChild(item);
+        });
+        
+        previewEl.style.display = 'block';
+    }
+
+    async confirmImport() {
+        const loadingEl = document.getElementById('importLoading');
+        const previewEl = document.getElementById('importPreview');
+        
+        loadingEl.style.display = 'block';
+        previewEl.style.display = 'none';
+
+        try {
+            // Get selected keys
+            const checkboxes = document.querySelectorAll('#importKeysList input[type="checkbox"]:checked');
+            const selectedKeys = Array.from(checkboxes).map(cb => 
+                this.pendingImportKeys[parseInt(cb.dataset.index)]
+            );
+
+            if (selectedKeys.length === 0) {
+                this.showToast('No keys selected for import', 'error');
+                return;
+            }
+
+            // Import selected keys
+            let importedCount = 0;
+            for (const key of selectedKeys) {
+                try {
+                    // Check if key already exists
+                    const exists = this.keys.some(existingKey => 
+                        existingKey.name === key.name && existingKey.account === key.account
+                    );
+                    
+                    if (!exists) {
+                        await this.addKey(key);
+                        importedCount++;
+                    }
+                } catch (error) {
+                    console.error('Error importing key:', key.name, error);
+                }
+            }
+
+            loadingEl.style.display = 'none';
+            this.hideImportModal();
+            
+            if (importedCount > 0) {
+                await this.loadKeys();
+                this.showToast(`Imported ${importedCount} key(s) successfully`, 'success');
+            } else {
+                this.showToast('No new keys were imported (duplicates skipped)', 'info');
+            }
+            
+        } catch (error) {
+            console.error('Error during import:', error);
+            loadingEl.style.display = 'none';
+            this.showToast('Failed to import keys', 'error');
+        }
+    }
+
+    cancelImport() {
+        document.getElementById('importPreview').style.display = 'none';
+        this.pendingImportKeys = [];
     }
 }
 
